@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>must-watch-tracker</title>
+  <script type="module" crossorigin src="/must-watch-tracker/assets/index-BxM1pSdR.js"></script>
+  <link rel="stylesheet" crossorigin href="/must-watch-tracker/assets/index-BeWO7cgH.css">
+</head>
+
+<body class="bg-secondary text-white font-body min-h-screen flex flex-col">
+
+  <!--  Top Bar (black) / Icon, Search Bar and Profile button  -->
+  <header class="bg-black flex flex-wrap items-center justify-between gap-3 p-3 sm:px-6 shadow-md">
+    <!-- Left: logo -->
+    <div class="flex items-center gap-3">
+      <img src="/must-watch-tracker/assets/main-icon-DpGRYMzP.png" alt="App icon" class="w-8 h-8 sm:w-10 sm:h-10" />
+      <h1 class="font-title text-xl sm:text-2xl md:text-3xl font-bold tracking-wide">
+        Must Watch
+      </h1>
+
+    </div>
+
+    <!-- Center: Search Bar -->
+    <div class="flex-1 flex justify-center">
+      <input id="searchInput" placeholder="Search titles..."
+        class="w-40 sm:w-64 md:w-full max-w-md p-2 rounded text-black" />
+    </div>
+
+    <!-- Right: Profile Button -->
+    <button id="profileBtn"
+      class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary hover:bg-red-700 flex items-center justify-center shadow-md transition">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-white">
+        <path fill-rule="evenodd" d="M12 2a5 5 0 100 10 5 5 0 000-10zm-7 18a7 7 0 0114 0H5z" clip-rule="evenodd" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- LAYOUT: Sidebar + Content (Desktop grid) -->
+  <div class="flex-1 md:grid md:grid-cols-[12rem,1fr] lg:grid-cols-[16rem,1fr] min-h-0">
+
+    <!-- Sidebar (Categories) -->
+    <aside class="hidden md:flex flex-col bg-zinc-900 p-4 border-r border-gray-800">
+      <h2 class="font-title text-xl mb-4">Categories</h2>
+      <ul class="space-y-2 text-sm">
+        <li><button class="hover:text-primary transition">Action</button></li>
+        <li><button class="hover:text-primary transition">Drama</button></li>
+        <li><button class="hover:text-primary transition">Comedy</button></li>
+        <li><button class="hover:text-primary transition">Sci-Fi</button></li>
+        <li><button class="hover:text-primary transition">Documentary</button></li>
+      </ul>
+    </aside>
+
+    <!-- Content column (red tabs at the top, grid below) -->
+    <section class="flex flex-col min-h-0">
+      <!-- Tabs/Nav bar (red) aligned with content column only) -->
+      <nav class="bg-primary flex items-center justify-between px-4 sm:px-6 py-2">
+        <!-- Left: Add button (desktop only) -->
+        <button id="addBtn"
+          class="hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-white text-primary font-bold text-xl hover:bg-gray-200 transition">
+          +
+        </button>
+
+        <!-- Center: Tabs -->
+        <div class="flex-1 flex justify-center">
+          <div class="flex space-x-6 font-semibold text-sm sm:text-base">
+            <button class="tab-btn border-b-4 border-transparent hover:border-white transition"
+              data-filter="all">All</button>
+            <button class="tab-btn border-b-4 border-transparent hover:border-white transition"
+              data-filter="movie">Movies</button>
+            <button class="tab-btn border-b-4 border-transparent hover:border-white transition"
+              data-filter="series">Series</button>
+          </div>
+        </div>
+
+        <!-- Right spacer for balance -->
+        <div class="hidden md:block w-8 h-8"></div>
+      </nav>
+
+      <!-- Cards grid -->
+      <main id="results" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6 p-6 flex-1 overflow-y-auto">
+      </main>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-black text-center py-3 text-xs sm:text-sm opacity-80">
+    © 2025 Must Watch Tracker · Icon by
+    <a href="https://www.flaticon.com/free-icon/clapperboard_1038100" class="underline hover:text-primary"
+      target="_blank">Freepik – Flaticon</a>
+  </footer>
+<!-- Main script JS-->
+</body>
+
+</html>
