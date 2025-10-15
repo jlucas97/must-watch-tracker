@@ -5,30 +5,30 @@ import { watchlist as Watchlist } from "./storage/watchlist.js";
 
 const watchlist = new Watchlist();
 
-
-document.getElementById("appIcon").addEventListener("click", () => {
-  renderWatchlist();
-});
-
-
 /* ---------- DOM Elements ---------- */
 const input = document.getElementById("searchInput");
 const resultsContainer = document.getElementById("results");
+const appIcon = document.getElementById("appIcon");
 
-/* ---------- Render Searched Cards ---------- */
+/* ---------- Event: Logo click → render watchlist ---------- */
+appIcon.addEventListener("click", () => {
+  renderWatchlist();
+});
+
+/* ---------- Render Cards (search results) ---------- */
 function renderCards(items) {
   resultsContainer.innerHTML = items
     .map(
       (i) => `
       <div class="bg-zinc-800 rounded-lg overflow-hidden shadow hover:scale-[1.02] transition">
         <img src="${i.image}" alt="${i.title}"
-             class="w-full aspect-[2/3] object-contain bg-black rounded-t" />
+             class="w-full aspect-[2/3] object-cover bg-black rounded-t" />
         <div class="p-3 flex flex-col justify-between h-[10rem]">
-          <h2 class="font-title text-lg">${i.title}</h2>
+          <h2 class="font-title text-lg leading-tight line-clamp-2">${i.title}</h2>
           <p class="text-sm text-zinc-300">${i.genres}</p>
           <p class="text-sm text-zinc-400">⭐ ${i.rating} · ${i.premiered ?? i.year ?? "—"}</p>
           <button class="mt-2 bg-primary hover:bg-red-700 rounded p-1 text-xs font-semibold"
-                  data-item='${encodeURIComponent(JSON.stringify(i))}'>
+                  data-id="${i.id}">
             + Add to Watchlist
           </button>
         </div>
@@ -36,39 +36,59 @@ function renderCards(items) {
     )
     .join("");
 
-  // attach "add" events
-  resultsContainer.querySelectorAll("button[data-item]").forEach((btn) => {
-  btn.addEventListener("click", (e) => {
-    const itemData = e.currentTarget.dataset.item || e.target.closest("button")?.dataset.item;
-    if (!itemData) return;
-    const item = JSON.parse(decodeURIComponent(itemData));
-    watchlist.add(item);
-    alert(`${item.title} added to watchlist!`);
+  // Attach Add-to-Watchlist logic
+  resultsContainer.querySelectorAll("[data-id]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.currentTarget.dataset.id;
+      const item = items.find((m) => String(m.id) === String(id));
+      if (item) {
+        watchlist.add(item);
+        alert(`${item.title} added to Watchlist!`);
+      }
+    });
   });
-});
-
 }
 
-/* ---------- Handle Search ---------- */
-input.addEventListener("keyup", async (e) => {
-  const query = e.target.value.trim();
-  if (query.length < 3) return;
+/* ---------- Debounced + Fuzzy Search ---------- */
+let debounceTimer;
+input.addEventListener("input", () => {
+  clearTimeout(debounceTimer);
+  const query = input.value.trim();
 
-  resultsContainer.innerHTML = `<p class="text-center mt-6">🔍 Searching...</p>`;
-
-  try {
-    const [series, movies] = await Promise.all([
-      searchTvMaze(query),
-      searchImdb(query),
-    ]);
-    renderCards([...movies, ...series]);
-  } catch (err) {
-    console.error(err);
-    resultsContainer.innerHTML = `<p class="text-center text-red-400 mt-6">Error fetching data 😢</p>`;
+  // Require at least 2 characters
+  if (query.length < 2) {
+    resultsContainer.innerHTML = `<p class="text-center mt-6 text-gray-400">Type at least 2 characters to search.</p>`;
+    return;
   }
+
+  // Debounce actual search call
+  debounceTimer = setTimeout(async () => {
+    resultsContainer.innerHTML = `<p class="text-center mt-6">🔍 Searching...</p>`;
+
+    try {
+      const [series, movies] = await Promise.all([
+        searchTvMaze(query),
+        searchImdb(query),
+      ]);
+
+      // Combine results, then filter loosely (case-insensitive substring)
+      const combined = [...movies, ...series].filter((item) =>
+        item.title.toLowerCase().includes(query.toLowerCase())
+      );
+
+      if (combined.length === 0) {
+        resultsContainer.innerHTML = `<p class="text-center text-gray-400 mt-6">No matches found for "${query}". Try a broader term.</p>`;
+      } else {
+        renderCards(combined);
+      }
+    } catch (err) {
+      console.error(err);
+      resultsContainer.innerHTML = `<p class="text-center text-red-400 mt-6">Error fetching data </p>`;
+    }
+  }, 500); // wait 0.5s after user stops typing
 });
 
-// Render the current watchlist items 
+/* ---------- Render Watchlist ---------- */
 function renderWatchlist() {
   const items = watchlist.get();
 
@@ -77,7 +97,6 @@ function renderWatchlist() {
         .map(
           (i) => `
           <div class="relative bg-zinc-800 rounded-lg overflow-hidden shadow hover:scale-[1.02] transition">
-            
             <!-- Floating remove button -->
             <button class="absolute top-2 right-2 bg-black/70 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center transition transform hover:scale-110"
                     data-remove="${i.id}" title="Remove">
@@ -110,7 +129,7 @@ function renderWatchlist() {
         .join("")
     : `<p class="text-center text-gray-400 mt-10">No items in your watchlist.</p>`;
 
-  // Delete button logic
+  // Remove item
   resultsContainer.querySelectorAll("[data-remove]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       const id = e.currentTarget.dataset.remove;
@@ -119,7 +138,7 @@ function renderWatchlist() {
     });
   });
 
-  // Toggle watched logic
+  // Toggle watched
   resultsContainer.querySelectorAll("[data-toggle]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       const id = e.currentTarget.dataset.toggle;
@@ -128,4 +147,3 @@ function renderWatchlist() {
     });
   });
 }
-
