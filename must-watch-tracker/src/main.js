@@ -1,73 +1,131 @@
 import "./style.css";
+import { searchTvMaze } from "./api/tvmaze.js";
+import { searchImdb } from "./api/imdb.js";
+import { watchlist as Watchlist } from "./storage/watchlist.js";
 
-//Hardcoded data for demo purposes
-const data = [
-  {
-    title: "Batman Beyond",
-    genres: "Action, Adventure",
-    rating: 8.3,
-    year: 1998,
-    image:
-      "https://static.tvmaze.com/uploads/images/medium_portrait/4/10842.jpg",
-  },
-  {
-    title: "Breaking Bad",
-    genres: "Drama, Crime",
-    rating: 9.5,
-    year: 2008,
-    image:
-      "https://static.tvmaze.com/uploads/images/medium_portrait/501/1253519.jpg",
-  },
-  {
-    title: "The Mandalorian",
-    genres: "Action, Sci-Fi",
-    rating: 8.7,
-    year: 2019,
-    image:
-      "https://static.tvmaze.com/uploads/images/medium_portrait/501/1253498.jpg",
-  },
-  {
-    title: "Stranger Things",
-    genres: "Drama, Fantasy",
-    rating: 8.8,
-    year: 2016,
-    image:
-      "https://static.tvmaze.com/uploads/images/medium_portrait/200/501942.jpg",
-  },
-  {
-    title: "La Casa de Papel",
-    genres: "Action, Crime",
-    rating: 8.0,
-    year: 2017,
-    image:
-      "https://static.tvmaze.com/uploads/images/medium_portrait/376/940830.jpg",
-  },
-  {
-    title: "Loki",
-    genres: "Action, Adventure",
-    rating: 8.4,
-    year: 2021,
-    image:
-      "https://static.tvmaze.com/uploads/images/medium_portrait/478/1195717.jpg",
-  },
-];
+const watchlist = new Watchlist();
 
+
+document.getElementById("appIcon").addEventListener("click", () => {
+  renderWatchlist();
+});
+
+
+/* ---------- DOM Elements ---------- */
+const input = document.getElementById("searchInput");
+const resultsContainer = document.getElementById("results");
+
+/* ---------- Render Searched Cards ---------- */
 function renderCards(items) {
-  const container = document.getElementById("results");
-
-  container.innerHTML = items
+  resultsContainer.innerHTML = items
     .map(
       (i) => `
       <div class="bg-zinc-800 rounded-lg overflow-hidden shadow hover:scale-[1.02] transition">
         <img src="${i.image}" alt="${i.title}"
-          class="w-full aspect-[2/3] object-contain bg-black rounded-t" />
-          <h2 class="font-title text-lg sm:text-xl">${i.title}</h2>
+             class="w-full aspect-[2/3] object-contain bg-black rounded-t" />
+        <div class="p-3 flex flex-col justify-between h-[10rem]">
+          <h2 class="font-title text-lg">${i.title}</h2>
           <p class="text-sm text-zinc-300">${i.genres}</p>
-          <p class="text-sm text-zinc-400">⭐ ${i.rating} · ${i.year}</p>
+          <p class="text-sm text-zinc-400">⭐ ${i.rating} · ${i.premiered ?? i.year ?? "—"}</p>
+          <button class="mt-2 bg-primary hover:bg-red-700 rounded p-1 text-xs font-semibold"
+                  data-item='${encodeURIComponent(JSON.stringify(i))}'>
+            + Add to Watchlist
+          </button>
         </div>
       </div>`
     )
     .join("");
+
+  // attach "add" events
+  resultsContainer.querySelectorAll("button[data-item]").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    const itemData = e.currentTarget.dataset.item || e.target.closest("button")?.dataset.item;
+    if (!itemData) return;
+    const item = JSON.parse(decodeURIComponent(itemData));
+    watchlist.add(item);
+    alert(`${item.title} added to watchlist!`);
+  });
+});
+
 }
 
-renderCards(data);
+/* ---------- Handle Search ---------- */
+input.addEventListener("keyup", async (e) => {
+  const query = e.target.value.trim();
+  if (query.length < 3) return;
+
+  resultsContainer.innerHTML = `<p class="text-center mt-6">🔍 Searching...</p>`;
+
+  try {
+    const [series, movies] = await Promise.all([
+      searchTvMaze(query),
+      searchImdb(query),
+    ]);
+    renderCards([...movies, ...series]);
+  } catch (err) {
+    console.error(err);
+    resultsContainer.innerHTML = `<p class="text-center text-red-400 mt-6">Error fetching data 😢</p>`;
+  }
+});
+
+// Render the current watchlist items 
+function renderWatchlist() {
+  const items = watchlist.get();
+
+  resultsContainer.innerHTML = items.length
+    ? items
+        .map(
+          (i) => `
+          <div class="relative bg-zinc-800 rounded-lg overflow-hidden shadow hover:scale-[1.02] transition">
+            
+            <!-- Floating remove button -->
+            <button class="absolute top-2 right-2 bg-black/70 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center transition transform hover:scale-110"
+                    data-remove="${i.id}" title="Remove">
+              ✕
+            </button>
+
+            <!-- Poster -->
+            <img src="${i.image}" alt="${i.title}"
+                 class="w-full aspect-[2/3] object-cover bg-black rounded-t" />
+
+            <!-- Info -->
+            <div class="p-3 flex flex-col justify-between h-[12rem]">
+              <h2 class="font-title text-lg leading-tight line-clamp-2">${i.title}</h2>
+              <p class="text-sm text-zinc-300">${i.genres}</p>
+              <p class="text-sm text-zinc-400">
+                ⭐ ${i.rating} · ${i.premiered ?? i.year ?? "—"}
+              </p>
+
+              <!-- Watched toggle -->
+              <button class="mt-2 text-xs px-2 py-1 rounded ${
+                i.watched
+                  ? "bg-green-700 hover:bg-green-600"
+                  : "bg-gray-700 hover:bg-gray-600"
+              } transition" data-toggle="${i.id}">
+                ${i.watched ? "Watched " : "Mark as Watched"}
+              </button>
+            </div>
+          </div>`
+        )
+        .join("")
+    : `<p class="text-center text-gray-400 mt-10">No items in your watchlist.</p>`;
+
+  // Delete button logic
+  resultsContainer.querySelectorAll("[data-remove]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.currentTarget.dataset.remove;
+      watchlist.remove(id);
+      renderWatchlist();
+    });
+  });
+
+  // Toggle watched logic
+  resultsContainer.querySelectorAll("[data-toggle]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.currentTarget.dataset.toggle;
+      watchlist.toggleWatched(id);
+      renderWatchlist();
+    });
+  });
+}
+
