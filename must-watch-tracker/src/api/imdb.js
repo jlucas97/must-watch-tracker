@@ -1,5 +1,6 @@
+const API_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
 const BASE_URL = 'https://imdb8.p.rapidapi.com/title/v2/find';
-const API_KEY = '8ee2cced08mshc28564a893a5152p1659bfjsn8956c3daf843';
+
 import noImage from '../assets/no-image.svg';
 
 export async function searchImdb(query) {
