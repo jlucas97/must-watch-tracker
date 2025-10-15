@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://jlucas97.github.io/must-watch-tracker/",
+  "homepage": "",
 
   "scripts": {
     "dev": "vite",
