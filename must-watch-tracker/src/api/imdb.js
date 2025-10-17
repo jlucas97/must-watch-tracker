@@ -13,6 +13,9 @@ export async function searchImdb(query) {
   try {
     const url = `${BASE_URL}?apikey=${API_KEY}&s=${encodeURIComponent(query.trim())}`;
 
+    console.log("OMDb key loaded?", !!API_KEY, API_KEY?.slice(0, 4));
+
+
     const res = await fetch(url);
     if (!res.ok) {
       console.error(`OMDb API error: ${res.status} ${res.statusText}`);
