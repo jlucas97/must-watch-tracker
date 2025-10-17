@@ -28,12 +28,19 @@
     </div>
 
     <!-- Right: Profile Button -->
-    <button id="profileBtn"
-      class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary hover:bg-red-700 flex items-center justify-center shadow-md transition">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-white">
-        <path fill-rule="evenodd" d="M12 2a5 5 0 100 10 5 5 0 000-10zm-7 18a7 7 0 0114 0H5z" clip-rule="evenodd" />
-      </svg>
-    </button>
+    <div class="relative" id="profileContainer">
+      <button id="profileBtn"
+        class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary hover:bg-red-700 flex items-center justify-center shadow-md transition relative">
+        <span id="profileInitial" class="text-white font-bold text-sm"></span>
+      </button>
+
+      <!-- Dropdown menu (hidden by default) -->
+      <div id="userDropdown"
+        class="absolute right-0 mt-2 w-32 bg-zinc-800 rounded-md shadow-lg border border-gray-700 hidden">
+        <!-- Users will be inserted dynamically -->
+      </div>
+    </div>
+
   </header>
 
   <!-- LAYOUT: Sidebar + Content (Desktop grid) -->
@@ -43,13 +50,14 @@
     <aside class="hidden md:flex flex-col bg-zinc-900 p-4 border-r border-gray-800">
       <h2 class="font-title text-xl mb-4">Categories</h2>
       <ul class="space-y-2 text-sm">
-        <li><button class="hover:text-primary transition">Action</button></li>
-        <li><button class="hover:text-primary transition">Drama</button></li>
-        <li><button class="hover:text-primary transition">Comedy</button></li>
-        <li><button class="hover:text-primary transition">Sci-Fi</button></li>
-        <li><button class="hover:text-primary transition">Documentary</button></li>
+        <li><button data-category="Action" class="hover:text-primary transition">Action</button></li>
+        <li><button data-category="Drama" class="hover:text-primary transition">Drama</button></li>
+        <li><button data-category="Comedy" class="hover:text-primary transition">Comedy</button></li>
+        <li><button data-category="Sci-Fi" class="hover:text-primary transition">Sci-Fi</button></li>
+        <li><button data-category="Documentary" class="hover:text-primary transition">Documentary</button></li>
       </ul>
     </aside>
+
 
     <!-- Content column (red tabs at the top, grid below) -->
     <section class="flex flex-col min-h-0">
@@ -64,18 +72,29 @@
         <!-- Center: Tabs -->
         <div class="flex-1 flex justify-center">
           <div class="flex space-x-6 font-semibold text-sm sm:text-base">
-            <button class="tab-btn border-b-4 border-transparent hover:border-white transition"
-              data-filter="all">All</button>
-            <button class="tab-btn border-b-4 border-transparent hover:border-white transition"
-              data-filter="movie">Movies</button>
-            <button class="tab-btn border-b-4 border-transparent hover:border-white transition"
-              data-filter="series">Series</button>
+            <button id="filterAll" class="tab-btn border-b-4 border-transparent hover:border-white transition">
+              All
+            </button>
+            <button id="filterMovies" class="tab-btn border-b-4 border-transparent hover:border-white transition">
+              Movies
+            </button>
+            <button id="filterSeries" class="tab-btn border-b-4 border-transparent hover:border-white transition">
+              Series
+            </button>
           </div>
         </div>
 
         <!-- Right spacer for balance -->
         <div class="hidden md:block w-8 h-8"></div>
       </nav>
+
+      <!-- Sub-filters bar (watched/unwatched) -->
+      <div class="flex justify-center gap-3 bg-zinc-900 py-2 border-b border-gray-800 text-sm">
+        <button id="filterWatched" class="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600">Watched</button>
+        <button id="filterUnwatched" class="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600">Unwatched</button>
+        <button id="filterReset" class="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600">All</button>
+      </div>
+
 
       <!-- Cards grid -->
       <main id="results" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6 p-6 flex-1 overflow-y-auto">
